@@ -8,11 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amita:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chess Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
     <style>
         :root { --bg: #1a1a1a; --sidebar: #2b2b2b; --accent: #00ff88; --gold: #d4af37; --text: #efefef; --border: #444; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Amita', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Auth Overlay */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center;
@@ -29,7 +35,6 @@
             border-radius: 5px; text-align: center; font-size: 1rem;
         }
 
-        /* Layout */
         nav { width: 240px; background: var(--sidebar); border-right: 2px solid var(--gold); display: flex; flex-direction: column; padding: 20px; }
         .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 10px; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
         .nav-item.active { background: var(--gold); color: #1a1a1a; font-weight: 700; }
@@ -41,9 +46,9 @@
         .screen.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Components */
         .calc-container { background: #2b2b2b; padding: 25px; border-radius: 20px; border: 2px solid var(--gold); }
-        #display { background: #000; height: 70px; border-radius: 8px; font-size: 32px; text-align: right; padding: 0 15px; line-height: 70px; color: var(--accent); font-family: 'Seven Segment', monospace; border: 1px solid var(--border); margin-bottom: 15px; }
+        #display { background: #000; height: 70px; border-radius: 8px; font-size: 32px; text-align: right; padding: 0 15px; line-height: 70px; color: var(--accent); font-family: 'Seven Segment', monospace; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+        
         .card { background: var(--sidebar); padding: 20px; border-radius: 15px; border: 1px solid var(--border); text-align: center; margin-bottom: 20px;}
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .ttt-board { display: grid; grid-template-columns: repeat(3, 80px); gap: 5px; justify-content: center; margin: 20px 0; }
@@ -56,22 +61,17 @@
 </head>
 <body>
 
-<!-- Login/Sign Up Screen -->
 <div id="login-overlay">
     <div class="login-box">
         <h1 style="color:var(--gold); margin-bottom:0;">OmniFactEb</h1>
         <p id="auth-title" style="color:var(--accent); font-size: 0.8rem; margin-top:5px; letter-spacing: 2px;">SECURE ACCESS REQUIRED</p>
-        
         <input type="text" id="userInput" placeholder="Username">
         <input type="password" id="passInput" placeholder="Password">
-
         <button class="btn-accent" style="width: 100%; margin-top: 10px;" onclick="handleAuth()" id="mainAuthBtn">INITIALIZE SYSTEM</button>
-        
         <p style="margin-top: 15px; font-size: 0.8rem;">
             <span id="toggle-text">New operator?</span> 
             <a href="#" onclick="toggleAuthMode()" id="toggle-link" style="color:var(--gold); text-decoration: none; font-weight: bold;">Create Account</a>
         </p>
-        
         <p id="loginError" style="color: #ff4444; margin-top: 15px; font-size: 0.9rem; display: none;"></p>
     </div>
 </div>
@@ -119,9 +119,15 @@
         <div id="weather" class="screen">
             <div class="card">
                 <h3>Atmospheric Scan</h3>
-                <input type="text" id="cityIn" placeholder="Search City...">
-                <button onclick="getWeather()">Scan</button>
-                <div id="weatherOut" style="margin-top:15px;"></div>
+                <input type="text" id="cityIn" placeholder="Enter City...">
+                <button class="btn-accent" onclick="getWeather()">Scan Environment</button>
+                <div id="weatherOut" style="margin-top:20px; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto; display: none;">
+                    <p>🛰️ <strong>Status:</strong> <span id="w-cond" style="color:var(--accent)">-</span></p>
+                    <p>🌡️ <strong>Temp:</strong> <span id="w-temp">-</span>°C</p>
+                    <p>💧 <strong>Humidity:</strong> <span id="w-hum">-</span>%</p>
+                    <p>🌬️ <strong>Wind:</strong> <span id="w-wind">-</span> km/h</p>
+                </div>
+                <p id="w-error" style="color:#ff4444; display:none; margin-top:10px;">Target city not found.</p>
             </div>
         </div>
 
@@ -130,10 +136,19 @@
                 <h3>Arcade Hub</h3>
                 <div class="game-grid">
                     <button onclick="startTTT()">Tic-Tac-Toe</button>
-                    <button onclick="alert('Loading...')">Chess</button>
+                    <button onclick="startChess()">Chess (vs AI)</button>
                     <button onclick="alert('Loading...')">Ludo</button>
                 </div>
             </div>
+            
+            <!-- Chess Area -->
+            <div id="chess-wrap" class="card" style="display:none;">
+                <div id="chess-board" style="width: 300px; margin: 0 auto;"></div>
+                <p id="chess-status" style="margin-top:10px; color:var(--accent)">Your turn (White)</p>
+                <button onclick="closeChess()">Quit Chess</button>
+            </div>
+
+            <!-- TTT Area -->
             <div id="active-game" class="card" style="display:none;">
                 <div id="ttt-status">Your Turn (X)</div>
                 <div class="ttt-board" id="ttt-board"></div>
@@ -143,10 +158,10 @@
 
         <div id="alarm" class="screen">
             <div class="card">
-                <h3>Shout Alarm</h3>
-                <input type="text" id="aMsg" placeholder="Shout message...">
+                <h3>Routine Shout Alarm</h3>
+                <input type="text" id="aMsg" placeholder="Task to shout...">
                 <input type="time" id="aTime">
-                <button class="btn-accent" onclick="setAlarm()">Set</button>
+                <button class="btn-accent" onclick="setAlarm()">Set Shout</button>
                 <div id="aStatus" style="margin-top:10px; color:var(--accent)"></div>
             </div>
         </div>
@@ -154,7 +169,7 @@
 </main>
 
 <script>
-    // --- AUTH LOGIC ---
+    // --- AUTH ---
     let isSignUpMode = false;
     function toggleAuthMode() {
         isSignUpMode = !isSignUpMode;
@@ -163,15 +178,13 @@
         document.getElementById('toggle-text').innerText = isSignUpMode ? "Already registered?" : "New operator?";
         document.getElementById('toggle-link').innerText = isSignUpMode ? "Login Here" : "Create Account";
     }
-
     function handleAuth() {
         const u = document.getElementById('userInput').value.trim();
         const p = document.getElementById('passInput').value.trim();
         const err = document.getElementById('loginError');
         if(!u || !p) { err.innerText="Fields empty"; err.style.display="block"; return; }
-
         if(isSignUpMode) {
-            if(localStorage.getItem('user_'+u)) { err.innerText="User exists"; err.style.display="block"; }
+            if(localStorage.getItem('user_'+u)) { err.innerText="Username exists"; err.style.display="block"; }
             else { localStorage.setItem('user_'+u, p); alert("Registered!"); toggleAuthMode(); }
         } else {
             if(localStorage.getItem('user_'+u) === p) {
@@ -194,6 +207,36 @@
     function undo() { if(navHistory.length > 1) { redoStack.push(navHistory.pop()); navTo(navHistory[navHistory.length-1], false); } }
     function redo() { if(redoStack.length > 0) { const next = redoStack.pop(); navHistory.push(next); navTo(next, false); } }
 
+    // --- CHESS LOGIC ---
+    let game = null, board = null;
+    function startChess() {
+        document.getElementById('chess-wrap').style.display = 'block';
+        game = new Chess();
+        board = Chessboard('chess-board', {
+            draggable: true,
+            position: 'start',
+            onDrop: handleMove
+        });
+    }
+    function handleMove(source, target) {
+        let move = game.move({ from: source, to: target, promotion: 'q' });
+        if (move === null) return 'snapback';
+        document.getElementById('chess-status').innerText = "AI is thinking...";
+        window.setTimeout(makeBestMove, 250);
+    }
+    function makeBestMove() {
+        let possibleMoves = game.moves();
+        if (game.game_over()) {
+            document.getElementById('chess-status').innerText = "Game Over!";
+            return;
+        }
+        let randomIdx = Math.floor(Math.random() * possibleMoves.length);
+        game.move(possibleMoves[randomIdx]);
+        board.position(game.fen());
+        document.getElementById('chess-status').innerText = "Your turn (White)";
+    }
+    function closeChess() { document.getElementById('chess-wrap').style.display = 'none'; }
+
     // --- CALC ---
     const disp = document.getElementById('display');
     let expo = false;
@@ -202,7 +245,7 @@
         else if(expo) { disp.innerHTML += `<sup>${v}</sup>`; expo=false; }
         else disp.innerText += v; 
     }
-    function clearDisplay() { disp.innerText = '0'; }
+    function clearDisplay() { disp.innerText = '0'; expo = false; }
     function deleteLast() { disp.innerText = disp.innerText.length > 1 ? disp.innerText.slice(0,-1) : '0'; }
     function startExponent() { expo = true; }
     function calculate() { try { disp.innerText = eval(disp.innerHTML.replace(/<sup>(.*?)<\/sup>/g, "**($1)").replace(/÷/g,'/').replace(/×/g,'*')); } catch { disp.innerText="Error"; } }
@@ -210,9 +253,19 @@
 
     // --- WEATHER ---
     async function getWeather() {
-        const city = document.getElementById('cityIn').value;
-        try { const res = await fetch(`https://wttr.in/${city}?format=3`); document.getElementById('weatherOut').innerText = await res.text(); }
-        catch { document.getElementById('weatherOut').innerText = "Failed."; }
+        const city = document.getElementById('cityIn').value.trim();
+        const outDiv = document.getElementById('weatherOut');
+        if(!city) return;
+        try {
+            const res = await fetch(`https://wttr.in/${city}?format=j1`);
+            const data = await res.json();
+            const curr = data.current_condition[0];
+            document.getElementById('w-cond').innerText = curr.weatherDesc[0].value;
+            document.getElementById('w-temp').innerText = curr.temp_C;
+            document.getElementById('w-hum').innerText = curr.humidity;
+            document.getElementById('w-wind').innerText = curr.windspeedKmph;
+            outDiv.style.display = "block"; document.getElementById('w-error').style.display = "none";
+        } catch { outDiv.style.display = "none"; document.getElementById('w-error').style.display = "block"; }
     }
 
     // --- TIC TAC TOE ---
@@ -223,11 +276,11 @@
         b.fill(null); active = true;
         for(let i=0; i<9; i++) {
             let c = document.createElement('div'); c.className = 'cell';
-            c.onclick = () => { if(!b[i] && active) { b[i]="X"; c.innerText="X"; if(!checkWin()) setTimeout(ai, 400); } };
+            c.onclick = () => { if(!b[i] && active) { b[i]="X"; c.innerText="X"; if(!checkWin()) setTimeout(aiTTT, 400); } };
             boardDiv.appendChild(c);
         }
     }
-    function ai() {
+    function aiTTT() {
         let e = b.map((v,i) => v===null?i:null).filter(v=>v!==null);
         if(!e.length || !active) return;
         let m = e[Math.floor(Math.random()*e.length)];
@@ -254,7 +307,7 @@
     }, 1000);
     function setAlarm() { 
         al = { t: document.getElementById('aTime').value, m: document.getElementById('aMsg').value };
-        document.getElementById('aStatus').innerText = "Active for " + al.t;
+        document.getElementById('aStatus').innerText = "Shout active for " + al.t;
     }
 </script>
 </body>

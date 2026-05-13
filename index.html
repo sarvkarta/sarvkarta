@@ -12,26 +12,24 @@
         :root { --bg: #1a1a1a; --sidebar: #2b2b2b; --accent: #00ff88; --gold: #d4af37; --text: #efefef; --border: #444; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Amita', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Login Screen Overlay */
+        /* Auth Overlay */
         #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex; justify-content: center; align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center;
             z-index: 9999; backdrop-filter: blur(12px);
         }
         .login-box {
             background: var(--sidebar); padding: 40px; border-radius: 20px;
-            border: 2px solid var(--gold); text-align: center;
+            border: 2px solid var(--gold); text-align: center; width: 320px;
             box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
         }
         .login-box input {
-            display: block; width: 220px; margin: 15px auto; padding: 12px;
+            display: block; width: 90%; margin: 15px auto; padding: 12px;
             background: #000; border: 1px solid var(--border); color: var(--accent);
-            border-radius: 5px; text-align: center; font-size: 1.1rem;
+            border-radius: 5px; text-align: center; font-size: 1rem;
         }
 
-        /* Sidebar & Layout */
+        /* Layout */
         nav { width: 240px; background: var(--sidebar); border-right: 2px solid var(--gold); display: flex; flex-direction: column; padding: 20px; }
         .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 10px; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
         .nav-item.active { background: var(--gold); color: #1a1a1a; font-weight: 700; }
@@ -43,9 +41,9 @@
         .screen.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Calculator & UI Components */
+        /* Components */
         .calc-container { background: #2b2b2b; padding: 25px; border-radius: 20px; border: 2px solid var(--gold); }
-        #display { background: #000; height: 70px; border-radius: 8px; font-size: 32px; text-align: right; padding: 0 15px; line-height: 70px; color: var(--accent); font-family: 'Seven Segment', monospace; border: 1px solid var(--border); overflow: hidden; margin-bottom: 15px; }
+        #display { background: #000; height: 70px; border-radius: 8px; font-size: 32px; text-align: right; padding: 0 15px; line-height: 70px; color: var(--accent); font-family: 'Seven Segment', monospace; border: 1px solid var(--border); margin-bottom: 15px; }
         .card { background: var(--sidebar); padding: 20px; border-radius: 15px; border: 1px solid var(--border); text-align: center; margin-bottom: 20px;}
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .ttt-board { display: grid; grid-template-columns: repeat(3, 80px); gap: 5px; justify-content: center; margin: 20px 0; }
@@ -53,19 +51,28 @@
         
         button { background: #3d3d3d; color: white; border: 1px solid var(--gold); padding: 10px; border-radius: 6px; cursor: pointer; }
         .btn-accent { background: var(--accent); color: black; font-weight: bold; }
-        input[type="text"], input[type="time"] { background:#000; color:var(--accent); border:1px solid var(--gold); padding:8px; border-radius: 4px; }
+        input[type="text"], input[type="time"], input[type="password"] { background:#000; color:var(--accent); border:1px solid var(--gold); padding:8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<!-- Login Screen -->
+<!-- Login/Sign Up Screen -->
 <div id="login-overlay">
     <div class="login-box">
         <h1 style="color:var(--gold); margin-bottom:0;">OmniFactEb</h1>
-        <p style="color:var(--accent); font-size: 0.8rem; margin-top:5px;">SECURE ACCESS REQUIRED</p>
-        <input type="password" id="passInput" placeholder="Enter Access Code">
-        <button class="btn-accent" style="width: 100%;" onclick="checkLogin()">INITIALIZE SYSTEM</button>
-        <p id="loginError" style="color: #ff4444; margin-top: 15px; font-size: 0.9rem; display: none;">Invalid Access Code</p>
+        <p id="auth-title" style="color:var(--accent); font-size: 0.8rem; margin-top:5px; letter-spacing: 2px;">SECURE ACCESS REQUIRED</p>
+        
+        <input type="text" id="userInput" placeholder="Username">
+        <input type="password" id="passInput" placeholder="Password">
+
+        <button class="btn-accent" style="width: 100%; margin-top: 10px;" onclick="handleAuth()" id="mainAuthBtn">INITIALIZE SYSTEM</button>
+        
+        <p style="margin-top: 15px; font-size: 0.8rem;">
+            <span id="toggle-text">New operator?</span> 
+            <a href="#" onclick="toggleAuthMode()" id="toggle-link" style="color:var(--gold); text-decoration: none; font-weight: bold;">Create Account</a>
+        </p>
+        
+        <p id="loginError" style="color: #ff4444; margin-top: 15px; font-size: 0.9rem; display: none;"></p>
     </div>
 </div>
 
@@ -88,13 +95,11 @@
     </header>
 
     <div class="content">
-        <!-- Home -->
         <div id="home" class="screen active">
             <h1>Command Base Online</h1>
-            <p>Welcome, User. System status: <strong>Optimal</strong>. All modules online.</p>
+            <p id="welcomeMsg">Welcome, Operator. System status: <strong>Optimal</strong>.</p>
         </div>
 
-        <!-- Digitheoremo -->
         <div id="calc" class="screen">
             <div class="calc-container">
                 <div id="display">0</div>
@@ -111,28 +116,22 @@
             </div>
         </div>
 
-        <!-- Weather -->
         <div id="weather" class="screen">
             <div class="card">
-                <h3>Global Atmospheric Scan</h3>
+                <h3>Atmospheric Scan</h3>
                 <input type="text" id="cityIn" placeholder="Search City...">
                 <button onclick="getWeather()">Scan</button>
                 <div id="weatherOut" style="margin-top:15px;"></div>
             </div>
         </div>
 
-        <!-- Games -->
         <div id="games" class="screen">
             <div class="card">
                 <h3>Arcade Hub</h3>
-                <select id="gameDiff" style="background:#000; color:var(--accent); border:1px solid var(--gold); padding:5px;">
-                    <option value="easy">Level: EASY</option>
-                    <option value="hard">Level: HARD</option>
-                </select>
-                <div class="game-grid" style="margin-top:20px;">
+                <div class="game-grid">
                     <button onclick="startTTT()">Tic-Tac-Toe</button>
-                    <button onclick="alert('Module loading...')">Chess AI</button>
-                    <button onclick="alert('Module loading...')">Ludo</button>
+                    <button onclick="alert('Loading...')">Chess</button>
+                    <button onclick="alert('Loading...')">Ludo</button>
                 </div>
             </div>
             <div id="active-game" class="card" style="display:none;">
@@ -142,13 +141,12 @@
             </div>
         </div>
 
-        <!-- Alarm -->
         <div id="alarm" class="screen">
             <div class="card">
-                <h3>Routine Shout Alarm</h3>
-                <input type="text" id="aMsg" placeholder="Message to shout...">
+                <h3>Shout Alarm</h3>
+                <input type="text" id="aMsg" placeholder="Shout message...">
                 <input type="time" id="aTime">
-                <button class="btn-accent" onclick="setAlarm()">Activate</button>
+                <button class="btn-accent" onclick="setAlarm()">Set</button>
                 <div id="aStatus" style="margin-top:10px; color:var(--accent)"></div>
             </div>
         </div>
@@ -156,18 +154,35 @@
 </main>
 
 <script>
-    // --- LOGIN ---
-    function checkLogin() {
-        const pass = document.getElementById('passInput').value;
-        if(pass === "1234") { // DEFAULT CODE
-            document.getElementById('login-overlay').style.display = 'none';
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance("Welcome to Omni Fact E B"));
+    // --- AUTH LOGIC ---
+    let isSignUpMode = false;
+    function toggleAuthMode() {
+        isSignUpMode = !isSignUpMode;
+        document.getElementById('auth-title').innerText = isSignUpMode ? "CREATE NEW CREDENTIALS" : "SECURE ACCESS REQUIRED";
+        document.getElementById('mainAuthBtn').innerText = isSignUpMode ? "REGISTER OPERATOR" : "INITIALIZE SYSTEM";
+        document.getElementById('toggle-text').innerText = isSignUpMode ? "Already registered?" : "New operator?";
+        document.getElementById('toggle-link').innerText = isSignUpMode ? "Login Here" : "Create Account";
+    }
+
+    function handleAuth() {
+        const u = document.getElementById('userInput').value.trim();
+        const p = document.getElementById('passInput').value.trim();
+        const err = document.getElementById('loginError');
+        if(!u || !p) { err.innerText="Fields empty"; err.style.display="block"; return; }
+
+        if(isSignUpMode) {
+            if(localStorage.getItem('user_'+u)) { err.innerText="User exists"; err.style.display="block"; }
+            else { localStorage.setItem('user_'+u, p); alert("Registered!"); toggleAuthMode(); }
         } else {
-            document.getElementById('loginError').style.display = 'block';
+            if(localStorage.getItem('user_'+u) === p) {
+                document.getElementById('login-overlay').style.display='none';
+                document.getElementById('welcomeMsg').innerHTML = `Welcome, <strong>${u}</strong>. System status: <strong>Optimal</strong>.`;
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance("Access granted. Hello " + u));
+            } else { err.innerText="Invalid credentials"; err.style.display="block"; }
         }
     }
 
-    // --- NAVIGATION ---
+    // --- NAV ---
     let navHistory = ['home'], redoStack = [];
     function navTo(id, record = true) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -179,79 +194,67 @@
     function undo() { if(navHistory.length > 1) { redoStack.push(navHistory.pop()); navTo(navHistory[navHistory.length-1], false); } }
     function redo() { if(redoStack.length > 0) { const next = redoStack.pop(); navHistory.push(next); navTo(next, false); } }
 
-    // --- CALCULATOR ---
-    const display = document.getElementById('display');
-    let isExponentMode = false;
-    function appendValue(val) {
-        if (display.innerHTML === '0') display.innerHTML = val;
-        else if (isExponentMode) {
-            let sups = display.getElementsByTagName('sup');
-            if (sups.length > 0) sups[sups.length - 1].innerHTML += val;
-            else display.innerHTML += `<sup>${val}</sup>`;
-        } else display.innerHTML += val;
+    // --- CALC ---
+    const disp = document.getElementById('display');
+    let expo = false;
+    function appendValue(v) { 
+        if(disp.innerText === '0') disp.innerText = v; 
+        else if(expo) { disp.innerHTML += `<sup>${v}</sup>`; expo=false; }
+        else disp.innerText += v; 
     }
-    function startExponent() { isExponentMode = true; }
-    function clearDisplay() { display.innerHTML = '0'; isExponentMode = false; }
-    function deleteLast() { display.innerHTML = display.innerHTML.length > 1 ? display.innerHTML.slice(0, -1) : '0'; }
-    function calculate() {
-        try {
-            let expr = display.innerHTML.replace(/<sup>(.*?)<\/sup>/g, "**($1)").replace(/÷/g, '/').replace(/×/g, '*');
-            display.innerHTML = eval(expr); isExponentMode = false;
-        } catch { display.innerHTML = "Error"; }
-    }
-    function calculateSqrt() { try { display.innerHTML = Math.sqrt(eval(display.innerHTML)).toFixed(2); } catch { display.innerHTML = "Error"; } }
+    function clearDisplay() { disp.innerText = '0'; }
+    function deleteLast() { disp.innerText = disp.innerText.length > 1 ? disp.innerText.slice(0,-1) : '0'; }
+    function startExponent() { expo = true; }
+    function calculate() { try { disp.innerText = eval(disp.innerHTML.replace(/<sup>(.*?)<\/sup>/g, "**($1)").replace(/÷/g,'/').replace(/×/g,'*')); } catch { disp.innerText="Error"; } }
+    function calculateSqrt() { try { disp.innerText = Math.sqrt(eval(disp.innerText)).toFixed(2); } catch { disp.innerText="Error"; } }
 
     // --- WEATHER ---
     async function getWeather() {
         const city = document.getElementById('cityIn').value;
-        const out = document.getElementById('weatherOut');
-        out.innerHTML = "Scanning...";
-        try {
-            const res = await fetch(`https://wttr.in/${city}?format=3`);
-            out.innerHTML = await res.text();
-        } catch { out.innerHTML = "Scan Failed."; }
+        try { const res = await fetch(`https://wttr.in/${city}?format=3`); document.getElementById('weatherOut').innerText = await res.text(); }
+        catch { document.getElementById('weatherOut').innerText = "Failed."; }
     }
 
     // --- TIC TAC TOE ---
-    let board = Array(9).fill(null), gameActive = true;
+    let b = Array(9).fill(null), active = true;
     function startTTT() {
         document.getElementById('active-game').style.display = 'block';
-        const tb = document.getElementById('ttt-board'); tb.innerHTML = '';
-        board.fill(null); gameActive = true;
+        const boardDiv = document.getElementById('ttt-board'); boardDiv.innerHTML = '';
+        b.fill(null); active = true;
         for(let i=0; i<9; i++) {
             let c = document.createElement('div'); c.className = 'cell';
-            c.onclick = () => { if(!board[i] && gameActive) { board[i]="X"; c.innerText="X"; if(!checkWin()) setTimeout(aiMove, 500); } };
-            tb.appendChild(c);
+            c.onclick = () => { if(!b[i] && active) { b[i]="X"; c.innerText="X"; if(!checkWin()) setTimeout(ai, 400); } };
+            boardDiv.appendChild(c);
         }
     }
-    function aiMove() {
-        let empty = board.map((v,i) => v===null?i:null).filter(v=>v!==null);
-        if(!empty.length || !gameActive) return;
-        let move = empty[Math.floor(Math.random()*empty.length)];
-        board[move]="O"; document.querySelectorAll('.cell')[move].innerText="O"; checkWin();
+    function ai() {
+        let e = b.map((v,i) => v===null?i:null).filter(v=>v!==null);
+        if(!e.length || !active) return;
+        let m = e[Math.floor(Math.random()*e.length)];
+        b[m]="O"; document.querySelectorAll('.cell')[m].innerText="O"; checkWin();
     }
     function checkWin() {
-        const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        for(let w of wins) {
-            if(board[w[0]] && board[w[0]]===board[w[1]] && board[w[0]]===board[w[2]]) {
-                document.getElementById('ttt-status').innerText = board[w[0]] + " Wins!"; gameActive = false; return true;
+        const w = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for(let combo of w) {
+            if(b[combo[0]] && b[combo[0]]===b[combo[1]] && b[combo[0]]===b[combo[2]]) {
+                document.getElementById('ttt-status').innerText = b[combo[0]] + " Wins!"; active = false; return true;
             }
         }
-        if(!board.includes(null)) { document.getElementById('ttt-status').innerText = "Draw!"; return true; }
+        if(!b.includes(null)) { document.getElementById('ttt-status').innerText = "Draw!"; return true; }
         return false;
     }
-    function closeGame() { document.getElementById('active-game').style.display = 'none'; }
+    function closeGame() { document.getElementById('active-game').style.display='none'; }
 
-    // --- CLOCK & ALARM ---
-    let alarm = null;
+    // --- TIME ---
+    let al = null;
     setInterval(() => {
-        const n = new Date(); document.getElementById('clock').innerText = n.toLocaleTimeString();
-        let cur = n.getHours().toString().padStart(2,'0')+":"+n.getMinutes().toString().padStart(2,'0');
-        if(alarm && cur === alarm.t) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(alarm.m)); alarm=null; }
+        const d = new Date(); document.getElementById('clock').innerText = d.toLocaleTimeString();
+        let now = d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0');
+        if(al && now === al.t) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(al.m)); al=null; }
     }, 1000);
-    function setAlarm() {
-        alarm = { t: document.getElementById('aTime').value, m: document.getElementById('aMsg').value };
-        document.getElementById('aStatus').innerText = "Alarm Set for " + alarm.t;
+    function setAlarm() { 
+        al = { t: document.getElementById('aTime').value, m: document.getElementById('aMsg').value };
+        document.getElementById('aStatus').innerText = "Active for " + al.t;
     }
 </script>
 </body>

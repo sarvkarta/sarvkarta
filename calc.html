@@ -1,111 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Calculator</title>
-  <style>
-    body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f0f0f0;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Scientific Calculator Clone</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
 }
 
-.calculator {
-  background-color: black;
-  padding: 20px;
-  border-radius: 10px;
-  width: 320px;
+body{
+    background:white;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-.display {
-  width: calc(100% - 20px);
-  margin-bottom: 10px;
-  padding: 10px;
-  font-size: 24px;
-  border: none;
-  background-color: #333;
-  color: white;
+.calculator{
+    width:420px;
+    background:#303134;
+    padding:20px;
+    border-radius:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
-.keys {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 10px;
+.display{
+    width:100%;
+    height:90px;
+    border:none;
+    outline:none;
+    border-radius:18px;
+    background:gray;
+    color:white;
+    text-align:right;
+    padding:20px;
+    font-size:42px;
+    margin-bottom:20px;
 }
 
-button {
-  padding: 15px;
-  font-size: 20px;
-  border: none;
-  background-color: #666;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
 }
 
-button:hover {
-  background-color: #444;
+button{
+    height:68px;
+    border:none;
+    border-radius:16px;
+    font-size:24px;
+    cursor:pointer;
+    transition:1s;
 }
 
-  </style>
+button:hover{
+    background:#5f6368;
+}
+
+.opcoth{
+    background:yellow;
+    color:black;
+}
+
+.equal{
+    background:turquoise;
+}
+
+.equal:hover{
+    background:darkturquoise;
+}
+.num{
+    background:#00ffff;
+}
+.num:hover{
+    background:#006b85;
+}
+.sicocal{
+    background:darkorange;
+}
+.sicocal:hover{
+    background:red;
+}
+.cocal{
+    background:green;
+}
+.cocal:hover{
+    background:darkgreen;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="calculator">
-    <input type="text" class="display" id="display" disabled>
-    <div class="keys">
-      <button class="button" onclick="clearDisplay()">AC</button>
-      <button class="button" onclick="deleteLast()">DEL</button>
-      <button class="button" onclick="appendOperator('%')">%</button>
-      <button class="button" onclick="appendOperator('/')">/</button>
-      <button class="button" onclick="appendNumber(7)">7</button>
-      <button class="button" onclick="appendNumber(8)">8</button>
-      <button class="button" onclick="appendNumber(9)">9</button>
-      <button class="button" onclick="appendOperator('*')">*</button>
-      <button class="button" onclick="appendNumber(4)">4</button>
-      <button class="button" onclick="appendNumber(5)">5</button>
-      <button class="button" onclick="appendNumber(6)">6</button>
-      <button class="button" onclick="appendOperator('-')">-</button>
-      <button class="button" onclick="appendNumber(1)">1</button>
-      <button class="button" onclick="appendNumber(2)">2</button>
-      <button class="button" onclick="appendNumber(3)">3</button>
-      <button class="button" onclick="appendOperator('+')">+</button>
-      <button class="button" onclick="appendNumber(0)">0</button>
-      <button class="button" onclick="appendDoubleZero()">00</button>
-      <button class="button" onclick="appendDecimal()">.</button>
-      <button class="button" onclick="calculate()">=</button>
-    </div>
-  </div>
-  <script>
-    let display = document.getElementById('display');
-let buttons = document.querySelectorAll('.button');
 
-let string = '';
+<div class="calculator">
 
-buttons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        if (e.target.innerHTML == 'DEL') {
-            string = string.substring(0, string.length - 1);
-            display.value = string;
-        } else if (e.target.innerHTML == 'AC') {
-            string = '';
-            display.value = string;
-        } else if (e.target.innerHTML == '=') {
-            try {
-                string = eval(string);
-                display.value = string;
-            } catch (error) {
-                display.value = 'Error';
-            }
-        } else {
-            string += e.target.innerHTML;
-            display.value = string;
-        }
-    });
+<input type="text" class="display" id="display" readonly>
+
+<div class="buttons">
+
+<!-- Row 1 -->
+<button class="opcoth" onclick="clearDisplay()">AC</button>
+<button class="opcoth" onclick="backspace()">⌫</button>
+<button class="opcoth" onclick="append('(')">(</button>
+<button class="opcoth" onclick="append(')')">)</button>
+<button class="opcoth" onclick="append('/')">÷</button>
+
+<!-- Row 2 -->
+<button class="sicocal" onclick="append('Math.sqrt(')">√</button>
+<button class="num" onclick="append('7')">7</button>
+<button class="num" onclick="append('8')">8</button>
+<button class="num" onclick="append('9')">9</button>
+<button class="opcoth" onclick="append('*')">×</button>
+
+<!-- Row 3 -->
+<button class="sicocal" onclick="append('Math.pow(')">xʸ</button>
+<button class="num" onclick="append('4')">4</button>
+<button class="num" onclick="append('5')">5</button>
+<button class="num" onclick="append('6')">6</button>
+<button class="opcoth" onclick="append('-')">−</button>
+
+<!-- Row 4 -->
+<button class="sicocal" onclick="append('Math.PI')">π</button>
+<button class="num" onclick="append('1')">1</button>
+<button class="num" onclick="append('2')">2</button>
+<button class="num" onclick="append('3')">3</button>
+<button class="opcoth" onclick="append('+')">+</button>
+
+<!-- Row 5 -->
+<button onclick="append('.')">.</button>
+<button class="num" onclick="append('0')">0</button>
+<button class="cocal" onclick="append('Math.sin(')">sin</button>
+<button class="cocal" onclick="append('Math.cos(')">cos</button>
+<button class="cocal" onclick="append('Math.tan(')">tan</button>
+
+<!-- Row 6 -->
+<button onclick="append('Math.log10(')">log</button>
+<button onclick="append('Math.log(')">ln</button>
+<button onclick="append('Math.E')">e</button>
+
+<button class="equal" style="grid-column: span 2;" onclick="calculate()">
+=
+</button>
+
+</div>
+</div>
+
+<script>
+
+const display = document.getElementById("display");
+
+function append(value){
+    display.value += value;
+}
+
+function clearDisplay(){
+    display.value = "";
+}
+
+function backspace(){
+    display.value = display.value.slice(0,-1);
+}
+
+function calculate(){
+    try{
+        display.value = eval(display.value);
+    }
+    catch{
+        display.value = "Error";
+    }
+}
+
+document.addEventListener("keydown", (event)=>{
+
+    const key = event.key;
+
+    if(!isNaN(key) || "+-*/().".includes(key)){
+        append(key);
+    }
+
+    if(key === "Enter"){
+        calculate();
+    }
+
+    if(key === "Backspace"){
+        backspace();
+    }
+
+    if(key === "Escape"){
+        clearDisplay();
+    }
+
 });
 
-  </script>
+</script>
+
 </body>
 </html>

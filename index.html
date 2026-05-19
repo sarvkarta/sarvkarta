@@ -1,193 +1,716 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OmniFactEb</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hina+Mincho&display=swap" rel="stylesheet">
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: "Hina Mincho", serif;
-}
-body{
-    background:white;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-.calculator{
-    width:420px;
-    background:#303134;
-    padding:20px;
-    border-radius:24px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.5);
-}
-.display{
-    width:100%;
-    height:90px;
-    border:none;
-    outline:none;
-    border-radius:18px;
-    background:gray;
-    color:white;
-    text-align:right;
-    padding:20px;
-    font-size:42px;
-    margin-bottom:20px;
-}
-.buttons{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:12px;
-}
-button{
-    height:68px;
-    border:none;
-    border-radius:16px;
-    font-size:24px;
-    cursor:pointer;
-    transition:1s;
-}
-button:hover{
-    background:#5f6368;
-}
-.opcoth{
-    background:yellow;
-    color:black;
-}
-.equal{
-    background:turquoise;
-}
-.equal:hover{
-    background:darkturquoise;
-}
-.num{
-    background:#00ffff;
-}
-.num:hover{
-    background:#006b85;
-}
-.sicocal{
-    background:darkorange;
-}
-.sicocal:hover{
-    background:red;
-}
-.cocal{
-    background:green;
-}
-.cocal:hover{
-    background:darkgreen;
-}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniKnowAI - Workspace</title>
+    <style>
+        /* Modern Dark Cyber-Theme Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
+        body {
+            background-color: #121214;
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 750px;
+            height: 85vh;
+            background: #1e1e24;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #2a2a35;
+            z-index: 10;
+        }
+
+        .chat-header {
+            background: #252530;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-bottom: 1px solid #2a2a35;
+            color: #00d5f1;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Message Bubble Design */
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            line-height: 1.5;
+            word-break: break-word;
+            font-size: 0.95rem;
+        }
+
+        .user-msg {
+            background: #00d5f1;
+            color: #121214;
+            align-self: flex-end;
+            font-weight: 500;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai-msg {
+            background: #2b2b37;
+            color: #e2e8f0;
+            align-self: flex-start;
+            border: 1px solid #3a3a4a;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* --- UTILITY TOOLBOX PANEL --- */
+        .tools-panel {
+            background: #252530;
+            border-top: 1px solid #2a2a35;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tools-panel::-webkit-scrollbar { height: 4px; }
+        .tools-panel::-webkit-scrollbar-thumb { background: #3a3a4a; border-radius: 2px; }
+
+        .tool-btn {
+            background: #2b2b37;
+            color: #00d5f1;
+            border: 1px solid #3a3a4a;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tool-btn:hover { background: #00d5f1; color: #121214; border-color: #00d5f1; }
+
+        /* Dynamic Tool Popup Window CSS */
+        .tool-window {
+            display: none;
+            background: #252530;
+            border-top: 1px solid #3a3a4a;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .tool-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tool-input {
+            background: #121214;
+            border: 1px solid #3a3a4a;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.85rem;
+        }
+
+        .tool-action-btn {
+            background: #3a3a4a;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .tool-action-btn:hover { background: #4a4a5a; }
+
+        /* 🧮 UPGRADED GOOGLE CALCULATOR DESIGN WITH ADVANCED ACCORDION GRID */
+        .calculator {
+            width: 100%;
+            max-width: 460px;
+            background: #303134;
+            padding: 15px;
+            border-radius: 24px;
+            margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .display {
+            width: 100%;
+            height: 65px;
+            border: none;
+            outline: none;
+            border-radius: 14px;
+            background: #202124;
+            color: white;
+            text-align: right;
+            padding: 15px;
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        /* Mode Banner for Deg/Rad visualization */
+        .mode-banner {
+            grid-column: span 5;
+            text-align: left;
+            font-size: 0.75rem;
+            color: #a0a0a0;
+            padding-left: 5px;
+            font-weight: bold;
+        }
+
+        .calc-w-btn {
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            background: #3c4043;
+            transition: 0.15s;
+        }
+        .calc-w-btn:hover { background: #5f6368; }
+        
+        /* Screenshot matching color profiles */
+        .opcoth { background: #5f6368; color: #fff; }
+        .opcoth:hover { background: #70757a; }
+        .num { background: #202124; }
+        .num:hover { background: #303134; }
+        .sicocal { background: #f2994a; color: white; }
+        .sicocal:hover { background: #e0852b; }
+        .cocal { background: #27ae60; color: white; }
+        .cocal:hover { background: #219653; }
+        .equal { background: #1a73e8; color: white; }
+        .equal:hover { background: #155cb4; }
+        .c-ask { background: #00d5f1; color: #121214; }
+        .c-ask:hover { background: #00b9d4; }
+        
+        /* Advanced panel button styles from layout screenshot */
+        .adv-panel-btn {
+            background: #d2e3fc;
+            color: #1a73e8;
+        }
+        .adv-panel-btn:hover { background: #bcdcfa; }
+        .active-mode-btn { background: #1a73e8 !important; color: white !important; }
+
+        /* Hidden extension drawer setup */
+        .advanced-drawer {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            grid-column: span 5;
+            margin-top: 8px;
+            border-top: 1px dashed #5f6368;
+            padding-top: 8px;
+        }
+
+        /* Analogue Clock Design */
+        .analogue-clock {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #00d5f1;
+            border-radius: 50%;
+            position: relative;
+        }
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background: #fff;
+            border-radius: 2px;
+        }
+        .hour-hand { width: 2px; height: 14px; background: #00d5f1; }
+        .min-hand { width: 1.5px; height: 18px; background: #fff; }
+        .sec-hand { width: 1px; height: 20px; background: #ff4a4a; }
+
+        /* User Input Control Panel */
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background: #252530;
+            border-top: 1px solid #2a2a35;
+            gap: 10px;
+        }
+
+        .main-input {
+            flex: 1;
+            padding: 12px;
+            background: #121214;
+            border: 1px solid #3a3a4a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .main-input:focus { border-color: #00d5f1; }
+
+        .send-btn {
+            background: #00d5f1;
+            color: #121214;
+            border: none;
+            padding: 0 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .send-btn:hover { background: #00b9d4; transform: scale(1.02); }
+
+        /* --- BOTTOM LEFT DIGITAL DATE & TIME DISPLAY --- */
+        .live-tracker-stamp {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #6272a4;
+            background: rgba(30, 30, 36, 0.8);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #2a2a35;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+        .live-tracker-stamp span { color: #00d5f1; font-weight: bold; }
+    </style>
+</head>
 <body>
 
-<div class="calculator">
+<div class="chat-container">
+    <div class="chat-header">✨ OmniKnowAI Workspace</div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message ai-msg">Welcome to your upgraded dashboard! I am OmniKnowAI. Your workspace extensions are ready above the input board. How can I assist you?</div>
+    </div>
 
-<input type="text" class="display" id="display" readonly>
+    <div class="tools-panel">
+        <button class="tool-btn" onclick="toggleTool('calcWindow')">🧮 Calc</button>
+        <button class="tool-btn" onclick="toggleTool('travelWindow')">✈️ Travel Guide</button>
+        <button class="tool-btn" onclick="toggleTool('alarmWindow')">🗣️ Speech Alarm</button>
+        <button class="tool-btn" onclick="toggleTool('stopwatchWindow')">⏱️ Stopwatch</button>
+        <button class="tool-btn" onclick="toggleTool('timerWindow')">⏳ Timer</button>
+        <button class="tool-btn" onclick="toggleTool('weatherWindow')">🌤️ Weather</button>
+        <button class="tool-btn" onclick="toggleTool('codeWindow')">💻 Code Gen</button>
+        <button class="tool-btn" onclick="toggleTool('clockWindow')">🕒 Analogue Clock</button>
+    </div>
 
-<div class="buttons">
+    <div id="calcWindow" class="tool-window">
+        <div class="calculator">
+            <input type="text" class="display" id="display" readonly>
+            <div class="buttons">
+                <div class="mode-banner" id="modeIndicator">MODE: DEGREES</div>
 
-<!-- Row 1 -->
-<button class="opcoth" onclick="clearDisplay()">AC</button>
-<button class="opcoth" onclick="backspace()">⌫</button>
-<button class="opcoth" onclick="append('(')">(</button>
-<button class="opcoth" onclick="append(')')">)</button>
-<button class="opcoth" onclick="append('/')">÷</button>
+                <button class="calc-w-btn opcoth" onclick="clearDisplay()">AC</button>
+                <button class="calc-w-btn opcoth" onclick="backspace()">⌫</button>
+                <button class="calc-w-btn opcoth" onclick="append('(')">(</button>
+                <button class="calc-w-btn opcoth" onclick="append(')')">)</button>
+                <button class="calc-w-btn opcoth" onclick="append('÷')">÷</button>
 
-<!-- Row 2 -->
-<button class="sicocal" onclick="append('Math.sqrt(')">√</button>
-<button class="num" onclick="append('7')">7</button>
-<button class="num" onclick="append('8')">8</button>
-<button class="num" onclick="append('9')">9</button>
-<button class="opcoth" onclick="append('*')">×</button>
+                <button class="calc-w-btn sicocal" onclick="append('√(')">√</button>
+                <button class="calc-w-btn num" onclick="append('7')">7</button>
+                <button class="calc-w-btn num" onclick="append('8')">8</button>
+                <button class="calc-w-btn num" onclick="append('9')">9</button>
+                <button class="calc-w-btn opcoth" onclick="append('×')">×</button>
 
-<!-- Row 3 -->
-<button class="sicocal" onclick="append('Math.pow(')">xʸ</button>
-<button class="num" onclick="append('4')">4</button>
-<button class="num" onclick="append('5')">5</button>
-<button class="num" onclick="append('6')">6</button>
-<button class="opcoth" onclick="append('-')">−</button>
+                <button class="calc-w-btn sicocal" onclick="append('^(')">xʸ</button>
+                <button class="calc-w-btn num" onclick="append('4')">4</button>
+                <button class="calc-w-btn num" onclick="append('5')">5</button>
+                <button class="calc-w-btn num" onclick="append('6')">6</button>
+                <button class="calc-w-btn opcoth" onclick="append('−')">−</button>
 
-<!-- Row 4 -->
-<button class="sicocal" onclick="append('Math.PI')">π</button>
-<button class="num" onclick="append('1')">1</button>
-<button class="num" onclick="append('2')">2</button>
-<button class="num" onclick="append('3')">3</button>
-<button class="opcoth" onclick="append('+')">+</button>
+                <button class="calc-w-btn sicocal" onclick="append('π')">π</button>
+                <button class="calc-w-btn num" onclick="append('1')">1</button>
+                <button class="calc-w-btn num" onclick="append('2')">2</button>
+                <button class="calc-w-btn num" onclick="append('3')">3</button>
+                <button class="calc-w-btn opcoth" onclick="append('+')">+</button>
 
-<!-- Row 5 -->
-<button onclick="append('.')">.</button>
-<button class="num" onclick="append('0')">0</button>
-<button class="equal" style="grid-column: span 3;" onclick="calculate()">=</button>
+                <button class="calc-w-btn" onclick="append('.')">.</button>
+                <button class="calc-w-btn num" onclick="append('0')">0</button>
+                <button class="calc-w-btn equal" onclick="calculate()">=</button>
+                <button class="calc-w-btn adv-panel-btn" style="grid-column: span 2;" onclick="toggleAdvancedDrawer()">Fx (Adv Keypad)</button>
 
+                <button class="calc-w-btn cocal" onclick="append('sin(')">sin</button>
+                <button class="calc-w-btn cocal" onclick="append('cos(')">cos</button>
+                <button class="calc-w-btn cocal" onclick="append('tan(')">tan</button>
+                <button class="calc-w-btn cocal" onclick="append('log(')">log</button>
+                <button class="calc-w-btn cocal" onclick="append('ln(')">ln</button>
 
-<button class="cocal" onclick="append('Math.sin(')">sin</button>
-<button class="cocal" onclick="append('Math.cos(')">cos</button>
-<button class="cocal" onclick="append('Math.tan(')">tan</button>
-<button class="cocal" onclick="append('Math.log10(')">log</button>
-<button class="cocal" onclick="append('Math.log(')">ln</button>
-<button class="cocal" onclick="append('Math.E')">e</button>
+                <div class="advanced-drawer" id="advDrawer">
+                    <button class="calc-w-btn active-mode-btn" id="degBtn" style="font-size:12px;" onclick="setAngleMode('deg')">Deg</button>
+                    <button class="calc-w-btn" id="radBtn" style="font-size:12px;" onclick="setAngleMode('rad')">Rad</button>
+                    <button class="calc-w-btn opcoth" style="font-size:14px;" onclick="append('!')">x!</button>
+                    <button class="calc-w-btn opcoth" id="invBtn" style="font-size:12px;" onclick="toggleInverseMode()">Inv</button>
+                    <button class="calc-w-btn opcoth" style="font-size:13px;" onclick="append('e')">e</button>
+                    
+                    <button class="calc-w-btn num" style="grid-column: span 2; font-size:14px;" onclick="useAnsValue()">Ans</button>
+                    <button class="calc-w-btn num" style="font-size:13px;" onclick="append('E')">EXP</button>
+                    <button class="calc-w-btn c-ask" style="grid-column: span 2; font-size:13px;" onclick="sendCalcToAI()">Ask AI</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div id="travelWindow" class="tool-window">
+        <div class="tool-inner">
+            <input type="text" id="travelInput" class="tool-input" placeholder="Enter country or city...">
+            <button class="tool-action-btn" onclick="runTravel()">Generate Itinerary</button>
+        </div>
+    </div>
 
+    <div id="alarmWindow" class="tool-window">
+        <div class="tool-inner">
+            <input type="time" id="alarmTime" class="tool-input">
+            <input type="text" id="alarmMsg" class="tool-input" placeholder="Wake up message...">
+            <button class="tool-action-btn" onclick="setAlarm()">Set Alarm</button>
+            <span id="alarmStatus" style="color: #ff4a4a;"></span>
+        </div>
+    </div>
+
+    <div id="stopwatchWindow" class="tool-window">
+        <div class="tool-inner">
+            <span id="stopwatchDisplay" style="font-family:monospace; font-size:1.1rem; color:#00d5f1; margin-right:10px;">00:00:00</span>
+            <button class="tool-action-btn" onclick="startStopwatch()">Start</button>
+            <button class="tool-action-btn" onclick="stopStopwatch()">Stop</button>
+            <button class="tool-action-btn" onclick="resetStopwatch()">Reset</button>
+        </div>
+    </div>
+
+    <div id="timerWindow" class="tool-window">
+        <div class="tool-inner">
+            <input type="number" id="timerInput" class="tool-input" style="width:70px;" placeholder="Secs">
+            <button class="tool-action-btn" onclick="startTimer()">Start Countdown</button>
+            <span id="timerDisplay" style="font-family:monospace; color:#ff4a4a; font-weight:bold;"></span>
+        </div>
+    </div>
+
+    <div id="weatherWindow" class="tool-window">
+        <div class="tool-inner">
+            <input type="text" id="weatherInput" class="tool-input" placeholder="Enter city name...">
+            <button class="tool-action-btn" onclick="runWeather()">Check Forecast</button>
+        </div>
+    </div>
+
+    <div id="codeWindow" class="tool-window">
+        <div class="tool-inner">
+            <input type="text" id="codeLanguage" class="tool-input" style="width:100px;" placeholder="Language...">
+            <input type="text" id="codeTask" class="tool-input" placeholder="What should the code do?">
+            <button class="tool-action-btn" onclick="runCodeGen()">Write Script</button>
+        </div>
+    </div>
+
+    <div id="clockWindow" class="tool-window">
+        <div class="tool-inner" style="justify-content: center; padding: 5px 0;">
+            <div class="analogue-clock">
+                <div id="hHand" class="clock-hand hour-hand"></div>
+                <div id="mHand" class="clock-hand min-hand"></div>
+                <div id="sHand" class="clock-hand sec-hand"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" class="main-input" placeholder="Ask me anything..." onkeydown="if(event.key === 'Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
 </div>
+
+<div class="live-tracker-stamp" id="digitalTracker">
+    DATE: <span id="trackDate">--/--/----</span><br>
+    TIME: <span id="trackTime">00:00:00 AM</span>
 </div>
 
 <script>
+    const API_KEY = "AIzaSyArRw1ndC1tnt1Eiy8VK--Bnoierv7V47I"; 
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
-const display = document.getElementById("display");
+    let stopwatchInterval, timerInterval;
+    let stopwatchTime = 0;
+    let currentAngleMode = 'deg'; 
+    let lastCalculatedAns = "0"; 
+    let isInverseActive = false;
 
-function append(value){
-    display.value += value;
-}
+    function updateLiveTrackers() {
+        const now = new Date();
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
+        document.getElementById("trackDate").innerText = now.toLocaleDateString('en-US', dateOptions).toUpperCase();
+        document.getElementById("trackTime").innerText = now.toLocaleTimeString('en-US');
 
-function clearDisplay(){
-    display.value = "";
-}
+        const secs = now.getSeconds();
+        const mins = now.getMinutes();
+        const hrs = now.getHours();
+        
+        document.getElementById("sHand").style.transform = `translateX(-50%) rotate(${secs * 6}deg)`;
+        document.getElementById("mHand").style.transform = `translateX(-50%) rotate(${mins * 6 + secs * 0.1}deg)`;
+        document.getElementById("hHand").style.transform = `translateX(-50%) rotate(${hrs * 30 + mins * 0.5}deg)`;
 
-function backspace(){
-    display.value = display.value.slice(0,-1);
-}
-
-function calculate(){
-    try{
-        display.value = eval(display.value);
+        if (activeAlarmTime === now.toTimeString().substring(0,5)) {
+            activeAlarmTime = null;
+            document.getElementById("alarmStatus").innerText = "⏰ Triggered!";
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(document.getElementById("alarmMsg").value || "Alarm Alert!"));
+        }
     }
-    catch{
-        display.value = "Error";
-    }
-}
+    setInterval(updateLiveTrackers, 1000);
+    updateLiveTrackers();
 
-document.addEventListener("keydown", (event)=>{
-
-    const key = event.key;
-
-    if(!isNaN(key) || "+-*/().".includes(key)){
-        append(key);
-    }
-
-    if(key === "Enter"){
-        calculate();
-    }
-
-    if(key === "Backspace"){
-        backspace();
-    }
-
-    if(key === "Escape"){
-        clearDisplay();
+    function toggleTool(id) {
+        const windows = document.querySelectorAll('.tool-window');
+        windows.forEach(w => { if(w.id !== id) w.style.display = 'none'; });
+        const current = document.getElementById(id);
+        current.style.display = current.style.display === 'block' ? 'none' : 'block';
     }
 
-});
+    // --- EXPANDABLE ADVANCED CALCULATOR KEYPAD CONTROLS ---
+    const display = document.getElementById("display");
 
+    function toggleAdvancedDrawer() {
+        const drawer = document.getElementById("advDrawer");
+        drawer.style.display = (drawer.style.display === 'grid') ? 'none' : 'grid';
+    }
+
+    function setAngleMode(mode) {
+        currentAngleMode = mode;
+        document.getElementById("modeIndicator").innerText = `MODE: ${mode.toUpperCase()}S`;
+        document.getElementById("degBtn").classList.toggle("active-mode-btn", mode === 'deg');
+        document.getElementById("radBtn").classList.toggle("active-mode-btn", mode === 'rad');
+    }
+
+    function toggleInverseMode() {
+        isInverseActive = !isInverseActive;
+        document.getElementById("invBtn").classList.toggle("active-mode-btn", isInverseActive);
+        
+        // Updates button labels visually just like Google Calculator's Inverse key
+        const labels = isInverseActive ? ['asin(', 'acos(', 'atan('] : ['sin(', 'cos(', 'tan('];
+        const buttons = document.querySelectorAll(".cocal");
+        buttons[0].innerText = isInverseActive ? 'asin' : 'sin';
+        buttons[0].setAttribute('onclick', `append('${labels[0]}')`);
+        buttons[1].innerText = isInverseActive ? 'acos' : 'cos';
+        buttons[1].setAttribute('onclick', `append('${labels[1]}')`);
+        buttons[2].innerText = isInverseActive ? 'atan' : 'tan';
+        buttons[2].setAttribute('onclick', `append('${labels[2]}')`);
+    }
+
+    function useAnsValue() {
+        display.value += lastCalculatedAns;
+    }
+
+    function append(value){ display.value += value; }
+    function clearDisplay(){ display.value = ""; }
+    function backspace(){ display.value = display.value.slice(0,-1); }
+
+    // Factorial logic loop script extension
+    function computeFactorial(num) {
+        if (num < 0) return NaN;
+        if (num === 0 || num === 1) return 1;
+        let result = 1;
+        for (let i = 2; i <= num; i++) result *= i;
+        return result;
+    }
+
+    function calculate(){
+        try {
+            let equation = display.value;
+            equation = equation.replace(/÷/g, '/');
+            equation = equation.replace(/×/g, '*');
+            equation = equation.replace(/−/g, '-');
+            equation = equation.replace(/π/g, 'Math.PI');
+            equation = equation.replace(/e/g, 'Math.E');
+            equation = equation.replace(/E/g, '*10**');
+
+            // Trigonometric parsing adapting for Deg vs Rad environment calculations
+            const multiplier = currentAngleMode === 'deg' ? '(Math.PI / 180)*' : '';
+            equation = equation.replace(/sin\(/g, `Math.sin(${multiplier}`);
+            equation = equation.replace(/cos\(/g, `Math.cos(${multiplier}`);
+            equation = equation.replace(/tan\(/g, `Math.tan(${multiplier}`);
+            
+            // Inverse Trig handling conversion paths
+            const divider = currentAngleMode === 'deg' ? '(180 / Math.PI)*' : '';
+            equation = equation.replace(/asin\(/g, `${divider}Math.asin(`);
+            equation = equation.replace(/acos\(/g, `${divider}Math.acos(`);
+            equation = equation.replace(/atan\(/g, `${divider}Math.atan(`);
+
+            equation = equation.replace(/log\(/g, 'Math.log10(');
+            equation = equation.replace(/ln\(/g, 'Math.log(');
+            equation = equation.replace(/\^\(/g, '**(');
+            equation = equation.replace(/√\(/g, 'Math.sqrt(');
+
+            // Scans and captures trail configurations for factorials (e.g. 5!)
+            equation = equation.replace(/(\d+)!/g, (match, p1) => computeFactorial(parseInt(p1)));
+
+            let result = eval(equation);
+            display.value = result;
+            lastCalculatedAns = String(result); // Saved to memory cache buffer
+        } catch(e) {
+            display.value = "Error";
+        }
+    }
+
+    function sendCalcToAI() {
+        const equation = display.value.trim();
+        if(!equation || equation === "Error") return;
+        document.getElementById("userInput").value = `Please evaluate and break down this mathematical formula step-by-step: ${equation}`;
+        toggleTool('calcWindow');
+        sendMessage();
+    }
+
+    // --- AUXILIARY UTILITIES IMPLEMENTATIONS ---
+    function runTravel() {
+        const dest = document.getElementById("travelInput").value.trim();
+        if(!dest) return;
+        document.getElementById("userInput").value = `Provide a detailed travel guide and single-day itinerary for: ${dest}`;
+        toggleTool('travelWindow');
+        sendMessage();
+    }
+
+    let activeAlarmTime = null;
+    function setAlarm() {
+        const timeInput = document.getElementById("alarmTime").value;
+        if(!timeInput) return;
+        activeAlarmTime = timeInput;
+        document.getElementById("alarmStatus").innerText = `Active [${timeInput}]`;
+    }
+
+    function startStopwatch() {
+        if(stopwatchInterval) return;
+        stopwatchInterval = setInterval(() => {
+            stopwatchTime++;
+            const h = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
+            const m = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
+            const s = String(stopwatchTime % 60).padStart(2, '0');
+            document.getElementById("stopwatchDisplay").innerText = `${h}:${m}:${s}`;
+        }, 1000);
+    }
+    function stopStopwatch() { clearInterval(stopwatchInterval); stopwatchInterval = null; }
+    function resetStopwatch() { stopStopwatch(); stopwatchTime = 0; document.getElementById("stopwatchDisplay").innerText = "00:00:00"; }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        let time = parseInt(document.getElementById("timerInput").value) || 0;
+        if(time <= 0) return;
+        timerInterval = setInterval(() => {
+            time--;
+            document.getElementById("timerDisplay").innerText = time + "s remaining";
+            if(time <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById("timerDisplay").innerText = "💥 Time Up!";
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance("Timer finished."));
+            }
+        }, 1000);
+    }
+
+    function runWeather() {
+        const targetCity = document.getElementById("weatherInput").value.trim();
+        if(!targetCity) return;
+        document.getElementById("userInput").value = `What is the current meteorological data and weather outlook for the city of ${targetCity}?`;
+        toggleTool('weatherWindow');
+        sendMessage();
+    }
+
+    function runCodeGen() {
+        const lang = document.getElementById("codeLanguage").value.trim();
+        const goal = document.getElementById("codeTask").value.trim();
+        if(!goal) return;
+        document.getElementById("userInput").value = `Generate efficient, clean code in ${lang || 'JavaScript'} to achieve the following target: ${goal}`;
+        toggleTool('codeWindow');
+        sendMessage();
+    }
+
+    // --- MAIN API INTERACTIVE AI CORE ---
+    async function sendMessage() {
+        const inputField = document.getElementById("userInput");
+        const chatBox = document.getElementById("chatBox");
+        const userText = inputField.value.trim();
+
+        if (userText === "") return;
+
+        appendMessage(userText, "user-msg");
+        inputField.value = ""; 
+
+        const loadingDiv = appendMessage("Thinking...", "ai-msg");
+
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const currentLiveDate = today.toLocaleDateString('en-US', options);
+
+        const requestData = {
+            systemInstruction: {
+                parts: [{ text: `Your name is OmniKnowAI. You are a brilliant, independent, and friendly AI knowledge assistant. Never mention Google, Gemini, or being trained by Google under any circumstances. The current date is ${currentLiveDate}. Use this accurate calendar data context for all real-time parameters, news tracking, or timeline assignments. Keep responses sharp, crisp, and robust.` }]
+            },
+            contents: [{ parts: [{ text: userText }] }],
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ]
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData)
+            });
+
+            const data = await response.json();
+
+            if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+                loadingDiv.innerText = data.candidates[0].content.parts[0].text; 
+            } else if (data.promptFeedback && data.promptFeedback.blockReason) {
+                loadingDiv.innerText = `System Notice: Action terminated due to safety filters (${data.promptFeedback.blockReason}).`;
+            } else {
+                loadingDiv.innerText = "OmniKnowAI: Internal telemetry exception. Unable to resolve response text configuration.";
+            }
+        } catch (error) {
+            console.error("Connection Error:", error);
+            loadingDiv.innerText = "Oops! Critical fault connecting to processing engine.";
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendMessage(text, className) {
+        const chatBox = document.getElementById("chatBox");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.innerText = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return messageDiv; 
+    }
 </script>
 
 </body>

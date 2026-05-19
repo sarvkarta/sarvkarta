@@ -1,723 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniFactEb | Advanced Integrated OS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Amita:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --bg: #121316; --sidebar: #1c1d21; --accent: #8ab4f8; --gold: #fbbc04; 
-            --text: #e8eaed; --card: #25262a; --google-blue: #4285f4; --ai-purple: #c58af9;
-            --calc-clear: #ea4335; --emerald: #00e676; --slate-900: #1a1b1e;
-        }
-
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Roboto', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-
-        /* --- LOGIN SCREEN --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg); display: flex; align-items: center; justify-content: center;
-            z-index: 9999; transition: opacity 0.4s ease;
-        }
-        .login-box {
-            background: var(--sidebar); border: 1px solid #3c4043; border-radius: 16px;
-            padding: 40px; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            text-align: center; box-sizing: border-box;
-        }
-        .login-box input {
-            width: 100%; box-sizing: border-box; padding: 12px; margin: 10px 0;
-            background: #0b0c0e; border: 1px solid #5f6368; border-radius: 6px;
-            color: #fff; font-size: 1rem;
-        }
-        .login-box input:focus { border-color: var(--accent); outline: none; }
-        .login-box button { width: 100%; padding: 12px; margin-top: 15px; font-size: 1rem; }
-        .error-msg { color: #ea4335; font-size: 0.85rem; margin-top: 10px; min-height: 18px; text-align: left; }
-
-        /* --- FRAME CONTAINER INTERFACES --- */
-        #system-layout { display: none; width: 100vw; height: 100vh; flex-direction: row; }
-
-        /* --- COLLAPSIBLE SIDEBAR --- */
-        nav { 
-            width: 260px; background: var(--sidebar); border-right: 1px solid #2e3035; 
-            padding: 20px 0; display: flex; flex-direction: column; justify-content: space-between;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; position: relative; shrink: 0;
-        }
-        nav.collapsed { width: 68px; }
-        
-        .nav-header { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; margin-bottom: 25px; min-height: 40px; }
-        .nav-logo { font-family: 'Amita'; color: var(--gold); font-size: 1.6rem; margin: 0; white-space: nowrap; transition: opacity 0.2s; }
-        nav.collapsed .nav-logo { opacity: 0; pointer-events: none; }
-
-        .collapse-toggle {
-            background: #2e3035; border: none; color: #bdc1c6; border-radius: 6px;
-            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 1rem;
-        }
-        .collapse-toggle:hover { background: var(--google-blue); color: white; }
-        nav.collapsed .collapse-toggle { position: absolute; left: 50%; transform: translateX(-50%); top: 26px; }
-
-        .nav-menu { display: flex; flex-direction: column; gap: 4px; padding: 0 10px; }
-        .nav-item { 
-            padding: 12px 15px; cursor: pointer; border-radius: 8px; 
-            transition: 0.2s; color: #bdc1c6; font-size: 0.95rem; display: flex; align-items: center; gap: 14px;
-            white-space: nowrap; border-left: 4px solid transparent;
-        }
-        .nav-item .nav-icon { font-size: 1.2rem; width: 24px; text-align: center; shrink: 0; }
-        .nav-item .nav-text { transition: opacity 0.2s; }
-        nav.collapsed .nav-text { opacity: 0; pointer-events: none; width: 0; }
-        
-        .nav-item.active { background: rgba(138, 180, 248, 0.08); color: var(--accent); border-left-color: var(--accent); }
-        .nav-item:hover:not(.active) { background: #2e3035; color: #fff; }
-
-        .nav-footer { padding: 15px 20px; border-top: 1px solid #2e3035; font-size: 0.75rem; color: #70757a; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        nav.collapsed .nav-footer span { display: none; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; }
-
-        /* --- MAIN CONTENT AREA --- */
-        main { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-width: 0; }
-        header { padding: 15px 30px; background: var(--sidebar); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2e3035; }
-        .content { flex: 1; padding: 30px; overflow-y: auto; }
-        .screen { width: 100%; max-width: 950px; margin: 0 auto; display: none; }
-        .screen.active { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- UI ELEMENTS --- */
-        .card { background: var(--card); padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #2e3035; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        input, button, select { padding: 12px; border-radius: 6px; border: 1px solid #5f6368; background: #0b0c0e; color: white; margin: 5px 0; font-family: inherit; }
-        input:focus { border-color: var(--accent); outline: none; }
-        .btn-blue { background: var(--google-blue); border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .btn-blue:hover { background: #5294ff; }
-        
-        /* --- AI SEARCH ENGINE MATRIX GRAPHICS --- */
-        .search-engine-tabs, .travel-subtabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 12px; flex-wrap: wrap; }
-        .search-tab, .travel-tab { background: #0b0c0e; border: 1px solid #3c4043; color: #bdc1c6; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-        .search-tab.active { background: var(--google-blue); color: white; border-color: var(--google-blue); }
-        .travel-tab.active { background: var(--gold); color: black; border-color: var(--gold); font-weight: bold; }
-        
-        .ai-omnibox { display: flex; gap: 10px; background: #0b0c0e; border: 1px solid #4f5257; border-radius: 14px; padding: 6px 12px; align-items: center; }
-        .ai-omnibox input { flex: 1; border: none; background: transparent; padding: 8px; font-size: 1.05rem; margin: 0; }
-        .ai-omnibox input:focus { outline: none; border: none; }
-        
-        /* MULTI-AGENT PIPELINE STEPPER */
-        .reasoning-chain { background: #17181c; border-left: 3px solid var(--ai-purple); padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; font-size: 0.9rem; }
-        .step-item { display: flex; align-items: center; gap: 10px; margin: 6px 0; color: #a0a5ad; }
-        .step-item.done { color: var(--emerald); }
-        .step-spinner { width: 14px; height: 14px; border: 2px solid var(--ai-purple); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .premium-ai-card { background: linear-gradient(145deg, rgba(197, 138, 249, 0.12) 0%, rgba(37, 38, 42, 0.9) 100%); border: 1px solid rgba(197, 138, 249, 0.3); padding: 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .search-image-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-        .search-photo-box { height: 120px; border-radius: 10px; border: 1px solid #444; object-fit: cover; background: #202124; width: 100%; transition: transform 0.2s, border-color 0.2s; }
-        .search-photo-box:hover { transform: scale(1.03); border-color: var(--accent); }
-
-        .source-pill { display: inline-flex; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid #555; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: var(--accent); text-decoration: none; margin-top: 15px; transition: 0.2s; font-weight: 500; gap: 6px; }
-        .source-pill:hover { background: var(--google-blue); color: white; border-color: var(--google-blue); }
-
-        .res-item { background: #0b0c0e; padding: 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #2e3035; transition: border-color 0.2s; }
-        .res-item:hover { border-color: #444; }
-        .res-item a { color: var(--accent); text-decoration: none; font-size: 1.1rem; font-weight: 500; }
-        .res-item a:hover { text-decoration: underline; }
-        .res-item p { color: #bdc1c6; font-size: 0.9rem; margin: 8px 0 0 0; line-height: 1.5; }
-        .res-meta { font-size: 0.75rem; color: var(--gold); margin-bottom: 4px; font-family: monospace; }
-
-        /* --- CALCULATOR DESIGN MATRIX --- */
-        .google-calc-container { background: #ffffff; border: 1px solid #dadce0; border-radius: 24px; padding: 24px; width: 100%; max-width: 680px; margin: 0 auto; box-sizing: border-box; }
-        .calc-screen-box { width: 100%; margin-bottom: 20px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-height: 90px; border: 1px solid #dadce0; border-radius: 16px; padding: 10px 18px; box-sizing: border-box; background: #fafafa; }
-        #calc-display { width: 100%; text-align: right; font-size: 2.8rem; border: none; background: transparent; color: #202124; outline: none; padding: 0; }
-        .calc-grid-layout { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .calc-grid-layout button { padding: 15px 0; border: none; border-radius: 24px; cursor: pointer; text-align: center; font-weight: 500; font-size: 1rem; margin: 0; }
-        .btn-sc { background: #f1f3f4; color: #202124; }
-        .btn-num { background: #f8f9fa; color: #202124; font-size: 1.15rem !important; font-weight: 700 !important; }
-        .btn-op { background: #e8f0fe; color: #1967d2; font-size: 1.15rem !important; }
-        .btn-clear { background: #fad2cf; color: #c5221f; font-weight: bold; }
-        .btn-eq { background: #1a73e8; color: #ffffff; font-size: 1.3rem !important; font-weight: bold; }
-
-        /* --- TRAVEL CONTENT DISPLAY --- */
-        .travel-tab-panel { display: none; margin-top: 15px; background: #17181c; padding: 20px; border-radius: 8px; border: 1px solid #333; line-height: 1.6; }
-        .travel-tab-panel.active { display: block; }
-        .travel-list-item { margin-bottom: 12px; padding-left: 15px; border-left: 3px solid var(--gold); }
-
-        .chrono-display { font-size: 3rem; text-align: center; font-family: monospace; margin: 15px 0; color: var(--gold); }
-        .flex-buttons { display: flex; gap: 10px; justify-content: center; }
-        #game-canvas { background: #000; border: 2px solid var(--gold); display: block; margin: 0 auto; }
-        
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniFactEb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hina+Mincho&display=swap" rel="stylesheet">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Hina Mincho", serif;
+}
+body{
+    background:white;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.calculator{
+    width:420px;
+    background:#303134;
+    padding:20px;
+    border-radius:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+.display{
+    width:100%;
+    height:90px;
+    border:none;
+    outline:none;
+    border-radius:18px;
+    background:gray;
+    color:white;
+    text-align:right;
+    padding:20px;
+    font-size:42px;
+    margin-bottom:20px;
+}
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
+}
+button{
+    height:68px;
+    border:none;
+    border-radius:16px;
+    font-size:24px;
+    cursor:pointer;
+    transition:1s;
+}
+button:hover{
+    background:#5f6368;
+}
+.opcoth{
+    background:yellow;
+    color:black;
+}
+.equal{
+    background:turquoise;
+}
+.equal:hover{
+    background:darkturquoise;
+}
+.num{
+    background:#00ffff;
+}
+.num:hover{
+    background:#006b85;
+}
+.sicocal{
+    background:darkorange;
+}
+.sicocal:hover{
+    background:red;
+}
+.cocal{
+    background:green;
+}
+.cocal:hover{
+    background:darkgreen;
+}
+</style>
 </head>
+
 <body>
 
-<!-- --- CORE SYSTEM LOGIN GATEWAY --- -->
-<div id="login-screen">
-    <div class="login-box">
-        <h1 style="font-family:'Amita'; color:var(--gold); margin-bottom: 5px; font-size: 2.2rem;">OmniFactEb</h1>
-        <p style="color: var(--accent); font-size: 0.85rem; margin-top: 0; margin-bottom: 25px; letter-spacing: 1px;">ADVANCED REASONING OS</p>
-        <input type="text" id="username" placeholder="Username (admin)">
-        <input type="password" id="password" placeholder="Password (password)">
-        <div id="error-box" class="error-msg"></div>
-        <button class="btn-blue" onclick="handleSystemLogin()">INITIALIZE RUNTIME</button>
-    </div>
+<div class="calculator">
+
+<input type="text" class="display" id="display" readonly>
+
+<div class="buttons">
+
+<!-- Row 1 -->
+<button class="opcoth" onclick="clearDisplay()">AC</button>
+<button class="opcoth" onclick="backspace()">⌫</button>
+<button class="opcoth" onclick="append('(')">(</button>
+<button class="opcoth" onclick="append(')')">)</button>
+<button class="opcoth" onclick="append('/')">÷</button>
+
+<!-- Row 2 -->
+<button class="sicocal" onclick="append('Math.sqrt(')">√</button>
+<button class="num" onclick="append('7')">7</button>
+<button class="num" onclick="append('8')">8</button>
+<button class="num" onclick="append('9')">9</button>
+<button class="opcoth" onclick="append('*')">×</button>
+
+<!-- Row 3 -->
+<button class="sicocal" onclick="append('Math.pow(')">xʸ</button>
+<button class="num" onclick="append('4')">4</button>
+<button class="num" onclick="append('5')">5</button>
+<button class="num" onclick="append('6')">6</button>
+<button class="opcoth" onclick="append('-')">−</button>
+
+<!-- Row 4 -->
+<button class="sicocal" onclick="append('Math.PI')">π</button>
+<button class="num" onclick="append('1')">1</button>
+<button class="num" onclick="append('2')">2</button>
+<button class="num" onclick="append('3')">3</button>
+<button class="opcoth" onclick="append('+')">+</button>
+
+<!-- Row 5 -->
+<button onclick="append('.')">.</button>
+<button class="num" onclick="append('0')">0</button>
+<button class="equal" style="grid-column: span 3;" onclick="calculate()">=</button>
+
+
+<button class="cocal" onclick="append('Math.sin(')">sin</button>
+<button class="cocal" onclick="append('Math.cos(')">cos</button>
+<button class="cocal" onclick="append('Math.tan(')">tan</button>
+<button class="cocal" onclick="append('Math.log10(')">log</button>
+<button class="cocal" onclick="append('Math.log(')">ln</button>
+<button class="cocal" onclick="append('Math.E')">e</button>
+
+
 </div>
-
-<!-- --- INTEGRATED ENVIRONMENT LAYOUT --- -->
-<div id="system-layout">
-    <nav id="sidebar-nav">
-        <div>
-            <div class="nav-header">
-                <h1 class="nav-logo">OmniFactEb</h1>
-                <button class="collapse-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
-            </div>
-            
-            <div class="nav-menu">
-                <div class="nav-item active" onclick="nav('search')">
-                    <span class="nav-icon">🧠</span>
-                    <span class="nav-text">AI Matrix Search</span>
-                </div>
-                <div class="nav-item" onclick="nav('calc')">
-                    <span class="nav-icon">🔢</span>
-                    <span class="nav-text">Complex Calc</span>
-                </div>
-                <div class="nav-item" onclick="nav('travel')">
-                    <span class="nav-icon">✈️</span>
-                    <span class="nav-text">Travel Guide</span>
-                </div>
-                <div class="nav-item" onclick="nav('alarm-hub')">
-                    <span class="nav-icon">🚨</span>
-                    <span class="nav-text">Voice Alarm</span>
-                </div>
-                <div class="nav-item" onclick="nav('chrono')">
-                    <span class="nav-icon">⏱️</span>
-                    <span class="nav-text">Chrono Engine</span>
-                </div>
-                <div class="nav-item" onclick="nav('weather')">
-                    <span class="nav-icon">⛅</span>
-                    <span class="nav-text">Weather Scan</span>
-                </div>
-                <div class="nav-item" onclick="nav('games')">
-                    <span class="nav-icon">🕹️</span>
-                    <span class="nav-text">Vector Dodge</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="nav-footer">
-            <div class="status-dot"></div>
-            <span>OMNI CORE ONLINE</span>
-        </div>
-    </nav>
-
-    <main>
-        <header>
-            <div id="kernel-status" style="color:var(--accent); font-weight:bold; font-size:0.9rem;">● OMNI_EXTENDED_SYS_ACTIVE</div>
-            <div id="sys-clock" style="font-family: monospace; font-size: 1.1rem;">00:00:00</div>
-        </header>
-
-        <div class="content">
-            <!-- --- DEEP AI SEARCH MATRIX --- -->
-            <div id="search" class="screen active">
-                <div class="card">
-                    <h3 style="margin-top:0; color:var(--accent); display:flex; align-items:center; gap:8px;">
-                        <span>🧠</span> Deep AI Search Neural Engine
-                    </h3>
-                    <p style="color:#bdc1c6; font-size:0.9rem; margin-top:-10px; margin-bottom:20px;">
-                        Cross-crawling active web indices, multi-source telemetry, and intelligence databases beyond standard search wrappers.
-                    </p>
-                    
-                    <div class="search-engine-tabs">
-                        <div class="search-tab active" onclick="setSearchTab('ai-deep', this)">✨ Deep AI Reasoning</div>
-                        <div class="search-tab" onclick="setSearchTab('web-raw', this)">🌐 Direct Web Crawl</div>
-                        <div class="search-tab" onclick="setSearchTab('academic', this)">🔬 Research Matrix</div>
-                    </div>
-                    
-                    <div class="ai-omnibox">
-                        <input type="text" id="search-input" placeholder="Query anything (e.g., Quantum computing timelines, Tiger ecology)...">
-                        <button class="btn-blue" onclick="runNeuralAISearch()" style="padding: 10px 24px; margin:0; border-radius:10px;">SYNTHESIZE</button>
-                    </div>
-                    
-                    <div id="search-results"></div>
-                </div>
-            </div>
-
-            <!-- --- CALCULATOR SCREEN --- -->
-            <div id="calc" class="screen">
-                <div id="calculator-injected-container"></div>
-            </div>
-
-            <!-- --- TRAVEL GUIDE SCREEN --- -->
-            <div id="travel" class="screen">
-                <div id="travel-injected-container"></div>
-            </div>
-
-            <div id="alarm-hub" class="screen"><div id="alarm-injected-container"></div></div>
-            <div id="chrono" class="screen"><div id="chrono-injected-container"></div></div>
-            <div id="weather" class="screen"><div id="weather-injected-container"></div></div>
-            
-            <div id="games" class="screen">
-                <div style="text-align:center;">
-                    <h3>VECTOR DODGE</h3>
-                    <p>Score: <span id="game-score" style="color:var(--gold); font-weight:bold;">0</span></p>
-                    <canvas id="game-canvas" width="400" height="400"></canvas><br>
-                    <button class="btn-blue" onclick="startVectorDodge()">START GAME</button>
-                </div>
-            </div>
-        </div>
-    </main>
 </div>
-
-<!-- --- TEMPLATE: CALCULATOR --- -->
-<template id="calc-template">
-    <div class="google-calc-container">
-        <div class="calc-screen-box">
-            <input type="text" class="calc-display-el" id="calc-display" readonly value="0">
-        </div>
-        <div class="calc-grid-layout">
-            <button class="btn-sc" onclick="inputCalc('Math.sin(', this)">sin</button>
-            <button class="btn-sc" onclick="inputCalc('Math.cos(', this)">cos</button>
-            <button class="btn-sc" onclick="inputCalc('Math.tan(', this)">tan</button>
-            <button class="btn-op" onclick="inputCalc('(', this)">(</button>
-            <button class="btn-op" onclick="inputCalc(')', this)">)</button>
-            <button class="btn-clear" onclick="delCalc(this)">CE</button>
-            <button class="btn-clear" onclick="clearCalc(this)">AC</button>
-
-            <button class="btn-sc" onclick="inputCalc('3.14159', this)">π</button>
-            <button class="btn-sc" onclick="inputCalc('Math.sqrt(', this)">√</button>
-            <button class="btn-sc" onclick="inputCalc('%', this)">%</button>
-            <button class="btn-num" onclick="inputCalc('7', this)">7</button>
-            <button class="btn-num" onclick="inputCalc('8', this)">8</button>
-            <button class="btn-num" onclick="inputCalc('9', this)">9</button>
-            <button class="btn-op" onclick="inputCalc('/', this)">÷</button>
-
-            <button class="btn-sc" onclick="inputCalc('2.71828', this)">e</button>
-            <button class="btn-sc" onclick="inputCalc('Math.log(', this)">ln</button>
-            <button class="btn-sc" onclick="calcSpecial('fact', this)">x!</button>
-            <button class="btn-num" onclick="inputCalc('4', this)">4</button>
-            <button class="btn-num" onclick="inputCalc('5', this)">5</button>
-            <button class="btn-num" onclick="inputCalc('6', this)">6</button>
-            <button class="btn-op" onclick="inputCalc('*', this)">×</button>
-
-            <button class="btn-sc" onclick="inputCalc('Math.pow(', this)">xʸ</button>
-            <button class="btn-sc" onclick="inputCalc('Math.log10(', this)">log</button>
-            <button class="btn-sc" onclick="inputCalc('Exp(', this)">Exp</button>
-            <button class="btn-num" onclick="inputCalc('1', this)">1</button>
-            <button class="btn-num" onclick="inputCalc('2', this)">2</button>
-            <button class="btn-num" onclick="inputCalc('3', this)">3</button>
-            <button class="btn-op" onclick="inputCalc('-', this)">−</button>
-
-            <button class="btn-sc" style="visibility:hidden;"></button>
-            <button class="btn-sc" style="visibility:hidden;"></button>
-            <button class="btn-sc" style="visibility:hidden;"></button>
-            <button class="btn-num" onclick="inputCalc('0', this)">0</button>
-            <button class="btn-num" onclick="inputCalc('.', this)">.</button>
-            <button class="btn-eq" onclick="solveCalc(this)">=</button>
-            <button class="btn-op" onclick="inputCalc('+', this)">+</button>
-        </div>
-    </div>
-</template>
-
-<!-- --- TEMPLATE: INTERACTIVE TRAVEL ENGINE --- -->
-<template id="travel-template">
-    <div class="card">
-        <h3>Interactive Travel Explorer</h3>
-        <div style="display:flex; gap:10px;">
-            <input type="text" class="travel-destination" placeholder="Try matching named entries: Paris, Tokyo, New York, Delhi..." style="flex:1;">
-            <button class="btn-blue" onclick="compileTravelGuide(this)">EXPLORE SPOT</button>
-        </div>
-        <div class="travel-results" style="margin-top: 15px;"></div>
-    </div>
-</template>
-
-<template id="alarm-template">
-    <div class="card">
-        <h3>Voice Broadcast Alarm System</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div><input type="time" class="alarm-time" style="width:90%;"></div>
-            <div><input type="text" class="alarm-text" placeholder="WAKE UP!" style="width:90%;"></div>
-        </div>
-        <button class="btn-blue" onclick="setVoiceAlarm(this)" style="margin-top: 15px; width: 100%;">ARM ALARM PROTOCOL</button>
-    </div>
-</template>
-
-<template id="chrono-template">
-    <div class="card">
-        <h3>System Stopwatch</h3>
-        <div class="chrono-display sw-display">00:00:00.0</div>
-        <div class="flex-buttons">
-            <button class="btn-blue" onclick="startStopwatch(this)">START</button>
-            <button onclick="stopStopwatch(this)">STOP</button>
-            <button onclick="resetStopwatch(this)">RESET</button>
-        </div>
-    </div>
-</template>
-
-<template id="weather-template">
-    <div class="card">
-        <h3>Atmosphere Condition Scanner</h3>
-        <div style="display:flex; gap:10px;">
-            <input type="text" class="w-city" placeholder="Enter target city..." style="flex:1;">
-            <button class="btn-blue" onclick="getWeather(this)">SCAN</button>
-        </div>
-        <div class="w-data" style="margin-top:20px; display:none; text-align: center;">
-            <h2 class="w-temp" style="font-size: 3rem; color: var(--gold);">--°C</h2>
-            <p class="w-desc" style="font-size: 1.2rem;">Condition</p>
-        </div>
-    </div>
-</template>
 
 <script>
-    // --- GATEWAY SECURITY SUBROUTINES ---
-    function handleSystemLogin() {
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
-        const err = document.getElementById('error-box');
 
-        if (user === "admin" && pass === "password") {
-            err.innerText = "";
-            const gateway = document.getElementById('login-screen');
-            gateway.style.opacity = "0";
-            setTimeout(() => {
-                gateway.style.display = "none";
-                document.getElementById('system-layout').style.display = "flex";
-                initializeCoreOSComponents();
-            }, 400);
-        } else {
-            err.innerText = "Access Denied: Invalid cryptographic runtime values.";
-        }
+const display = document.getElementById("display");
+
+function append(value){
+    display.value += value;
+}
+
+function clearDisplay(){
+    display.value = "";
+}
+
+function backspace(){
+    display.value = display.value.slice(0,-1);
+}
+
+function calculate(){
+    try{
+        display.value = eval(display.value);
+    }
+    catch{
+        display.value = "Error";
+    }
+}
+
+document.addEventListener("keydown", (event)=>{
+
+    const key = event.key;
+
+    if(!isNaN(key) || "+-*/().".includes(key)){
+        append(key);
     }
 
-    document.querySelectorAll('#login-screen input').forEach(el => {
-        el.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSystemLogin(); });
-    });
-
-    // --- SIDEBAR MUTATION CONTROLLERS ---
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar-nav');
-        const toggleBtn = document.querySelector('.collapse-toggle');
-        sidebar.classList.toggle('collapsed');
-        
-        if(sidebar.classList.contains('collapsed')) {
-            toggleBtn.innerText = "▶";
-        } else {
-            toggleBtn.innerText = "◀";
-        }
+    if(key === "Enter"){
+        calculate();
     }
 
-    // --- KERNEL NAVIGATION MATRIX ---
-    function nav(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            if(item.getAttribute('onclick').includes(`'${id}'`)) {
-                item.classList.add('active');
-            }
-        });
+    if(key === "Backspace"){
+        backspace();
     }
 
-    // --- DOM INJECTION MANAGER ---
-    function initializeCoreOSComponents() {
-        document.getElementById('calculator-injected-container').appendChild(document.getElementById('calc-template').content.cloneNode(true));
-        document.getElementById('travel-injected-container').appendChild(document.getElementById('travel-template').content.cloneNode(true));
-        document.getElementById('alarm-injected-container').appendChild(document.getElementById('alarm-template').content.cloneNode(true));
-        document.getElementById('chrono-injected-container').appendChild(document.getElementById('chrono-template').content.cloneNode(true));
-        document.getElementById('weather-injected-container').appendChild(document.getElementById('weather-template').content.cloneNode(true));
-        
-        setInterval(() => { document.getElementById('sys-clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    if(key === "Escape"){
+        clearDisplay();
     }
 
-    let searchMode = "ai-deep";
-    function setSearchTab(mode, el) {
-        searchMode = mode;
-        document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-    }
+});
 
-    // --- DYNAMIC AI SEARCH CRAWLER PIPELINE ---
-    async function runNeuralAISearch() {
-        const query = document.getElementById('search-input').value.trim();
-        const resContainer = document.getElementById('search-results');
-        if (!query) return;
-
-        // Render live multi-agent reasoning steps
-        resContainer.innerHTML = `
-            <div class="reasoning-chain">
-                <div style="font-weight:bold; color:var(--ai-purple); margin-bottom:10px;">⚡ AI Co-Agent Execution Trace</div>
-                <div class="step-item" id="step-1"><div class="step-spinner"></div> Initializing deep web endpoint connection tokens...</div>
-                <div class="step-item" id="step-2" style="opacity:0.5;">● Parsing cross-network context nodes...</div>
-                <div class="step-item" id="step-3" style="opacity:0.5;">● Re-synthesizing ungrounded telemetry data arrays...</div>
-            </div>
-        `;
-
-        // Sequential delay logic simulating multi-turn reasoning steps
-        await new Promise(r => setTimeout(r, 600));
-        document.getElementById('step-1').className = "step-item done";
-        document.getElementById('step-1').innerHTML = "✓ Active connection protocols established across public indexes.";
-        document.getElementById('step-2').style.opacity = "1";
-        document.getElementById('step-2').innerHTML = `<div class="step-spinner"></div> Parsing cross-network context nodes for tracking maps...`;
-
-        try {
-            // Outbound API processing layer
-            const targetUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-            const call = await fetch(targetUrl);
-            const raw = await call.json();
-
-            await new Promise(r => setTimeout(r, 700));
-            document.getElementById('step-2').className = "step-item done";
-            document.getElementById('step-2').innerHTML = "✓ Extracted live unstructured indexes from global routing servers.";
-            document.getElementById('step-3').style.opacity = "1";
-            document.getElementById('step-3').innerHTML = `<div class="step-spinner"></div> Executing cognitive RAG synthesis constraints...`;
-            
-            await new Promise(r => setTimeout(r, 500));
-
-            // Generate AI Synthesized Summary from raw token vectors
-            let synthesisText = "";
-            if (raw.AbstractText) {
-                synthesisText = `**Automated Deep Insights Analysis:** ${raw.AbstractText} Additional cross-indexing implies widespread systematic implementations across production clusters. Key architectures show extensive integration patterns across decentralized networks.`;
-            } else {
-                synthesisText = `**Cognitive Model Synthesis:** Investigation into "${query}" uncovers extensive references across edge database configurations. Unified semantic search models imply that the parameter space for "${query}" focuses heavily on dynamic infrastructure variables, evolutionary logic nodes, and operational deployment models. Deep inspection confirms cross-industry utilization without clear bottlenecks.`;
-            }
-
-            // Fallback photo matrix configurations
-            let stripHTML = `<div class="search-image-strip">`;
-            const contextKeyword = encodeURIComponent(query.toLowerCase().split(" ")[0]);
-            for (let i = 1; i <= 4; i++) {
-                const imgFallback = `https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80`;
-                const imgLive = `https://images.unsplash.com/featured/400x300/?${contextKeyword}&sig=${i + 20}`;
-                stripHTML += `<img src="${imgLive}" onerror="this.onerror=null; this.src='${imgFallback}';" class="search-photo-box" alt="Neural Vector Matrix Context Visual">`;
-            }
-            stripHTML += `</div>`;
-
-            // Structural Assembly for organic web outputs
-            const sourceAnchor = raw.AbstractSource || "Global Edge Node Network";
-            const sourceLink = raw.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-
-            const mockIndexRecords = [
-                { title: `Comprehensive Technical Architecture Guide on ${query}`, snippet: `Discover deeper architectural overviews, performance profiles, integration trade-offs, and ecosystem validation workflows concerning ${query} structures.`, domain: "CORE-TECH-NODE" },
-                { title: `Global Paradigms & Optimization Parameters: ${query}`, snippet: `An analysis of modern constraints, production strategies, and edge case mitigation patterns developed in 2026 for processing ${query}.`, domain: "SYSTEMATIC-REPORTS" },
-                { title: `Deconstructed Analysis Protocols: What is ${query}?`, snippet: `A look at historical context, fundamental math frameworks, and optimization matrices governing tracking layers within ${query}.`, domain: "OPEN-INDEX-RELAY" }
-            ];
-
-            let organicRecordsHTML = "";
-            mockIndexRecords.forEach(rec => {
-                organicRecordsHTML += `
-                    <div class="res-item">
-                        <div class="res-meta">INDEX RELAY IP // ${rec.domain}</div>
-                        <a href="${sourceLink}" target="_blank">${rec.title}</a>
-                        <p>${rec.snippet}</p>
-                    </div>
-                `;
-            });
-
-            // Output generated data frames directly into the DOM
-            resContainer.innerHTML = `
-                <div class="premium-ai-card">
-                    <h4 style="margin:0 0 15px 0; color:var(--ai-purple); font-size:1.15rem; display:flex; align-items:center; gap:6px;">
-                        <span>✨</span> Multi-Agent Synthesized Ground Truth Panel
-                    </h4>
-                    ${stripHTML}
-                    <p style="margin:0; font-size:1rem; line-height:1.6; color:#e1d5f5;">${synthesisText}</p>
-                    <div>
-                        <a href="${sourceLink}" target="_blank" class="source-pill">
-                            🌐 Primary Validated Node Connection: <strong>${sourceAnchor}</strong> ↗
-                        </a>
-                    </div>
-                </div>
-
-                <h4 style="margin:25px 0 12px 0; color:var(--accent); font-weight:500; font-size:1.05rem; letter-spacing:0.5px;">
-                    Verified Cross-Web Cluster Identifiers
-                </h4>
-                ${organicRecordsHTML}
-            `;
-
-        } catch (err) {
-            resContainer.innerHTML = `<p style='color:red; text-align:center; padding: 20px;'>Search Engine Pipeline Disruption. Check infrastructure link health.</p>`;
-        }
-    }
-
-    // --- LOCAL DATABASE CATALOG FOR SPECIFIC PLACES ---
-    const travelCatalog = {
-        paris: {
-            places: ["Eiffel Tower", "Louvre Museum", "Notre-Dame Cathedral", "Arc de Triomphe"],
-            things: ["Take a sunset boat cruise along the Seine River.", "Sample fresh croissants at a sidewalk café in Montmartre.", "Walk through the artistic gardens of Versailles Palace."],
-            flights: ["Air France", "Lufthansa", "Emirates", "Air India (Connecting via CDG)"]
-        },
-        tokyo: {
-            places: ["Shibuya Crossing", "Sensō-ji Temple", "Tokyo Skytree", "Meiji Jingu Shrine"],
-            things: ["Explore the brightly lit anime shops in Akihabara.", "Try fresh sushi at the Outer Tsukiji Fish Market.", "Take a peaceful stroll under cherry blossom trees at Ueno Park."],
-            flights: ["Japan Airlines (JAL)", "All Nippon Airways (ANA)", "Singapore Airlines", "IndiGo"]
-        },
-        "new york": {
-            places: ["Statue of Liberty", "Central Park", "Times Square", "Empire State Building"],
-            things: ["Watch a live musical theater show on Broadway.", "Walk across the historic wooden paths of the Brooklyn Bridge.", "Visit the world-famous exhibits inside the Museum of Modern Art (MoMA)."],
-            flights: ["Delta Air Lines", "United Airlines", "British Airways", "Air India"]
-        },
-        delhi: {
-            places: ["The Red Fort", "Qutub Minar", "India Gate", "Lotus Temple"],
-            things: ["Go on a rickshaw ride through the busy market lanes of Chandni Chowk.", "Taste traditional paranthas at Gali Paranthe Wali.", "Visit the peaceful gardens surrounding Humayun's Tomb."],
-            flights: ["Air India", "IndiGo", "Vistara", "SpiceJet"]
-        }
-    };
-
-    // --- INTERACTIVE TRAVEL GUIDE SUBSYSTEM ---
-    async function compileTravelGuide(el) {
-        const root = el.closest('.card');
-        const destInput = root.querySelector('.travel-destination').value.trim();
-        const res = root.querySelector('.travel-results');
-        if(!destInput) return;
-
-        res.innerHTML = `<p style="color:var(--gold); text-align:center; animation: pulse 1s infinite;">Assembling custom itinerary charts, flight data patterns, and scenery frames...</p>`;
-
-        try {
-            const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(destInput)}`);
-            if(!response.ok) throw new Error();
-            const data = await response.json();
-
-            const description = data.extract || "No custom profile logged for this destination spot yet.";
-            const cleanKey = destInput.toLowerCase().trim();
-            const keyword = encodeURIComponent(cleanKey.split(" ")[0]);
-
-            const targetData = travelCatalog[cleanKey] || {
-                places: [`Central ${destInput} Square`, "Historical Civic Museum", "Scenic Old Town District"],
-                things: [`Take an educational walking tour across historic downtown paths.`, `Taste iconic local street foods at the city's open-air markets.`, `Shop for unique regional handicrafts at community market stalls.`],
-                flights: ["Air India", "IndiGo", "Singapore Airlines", "Emirates Hubs"]
-            };
-
-            let travelStripHTML = `<div class="search-image-strip" style="margin-top:15px;">`;
-            for (let i = 1; i <= 4; i++) {
-                const defaultScenicImg = `https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80`;
-                const unsplashScenic = `https://images.unsplash.com/featured/400x300/?${keyword},landmark,travel&sig=${i + 150}`;
-                travelStripHTML += `<img src="${unsplashScenic}" onerror="this.onerror=null; this.src='${defaultScenicImg}';" class="search-photo-box" alt="${destInput} Landmark View">`;
-            }
-            travelStripHTML += `</div>`;
-
-            res.innerHTML = `
-                <div class="premium-ai-card" style="background: linear-gradient(145deg, rgba(251, 188, 4, 0.1) 0%, rgba(43, 44, 47, 0.9) 100%); border: 1px solid rgba(251, 188, 4, 0.35);">
-                    <h4 style="margin:0 0 10px 0; color:var(--gold); font-size:1.3rem;">✈️ INTERACTIVE TRAVEL GUIDE: ${destInput.toUpperCase()}</h4>
-                    
-                    ${travelStripHTML}
-
-                    <div class="travel-subtabs" style="margin-top:20px;">
-                        <div class="travel-tab active" onclick="switchTravelTab('t-desc', this)">📖 Overview</div>
-                        <div class="travel-tab" onclick="switchTravelTab('t-places', this)">📍 Places to Go</div>
-                        <div class="travel-tab" onclick="switchTravelTab('t-things', this)">🎯 Things to Do</div>
-                        <div class="travel-tab" onclick="switchTravelTab('t-flights', this)">🛫 Transit & Flights</div>
-                    </div>
-
-                    <div id="t-desc" class="travel-tab-panel active">
-                        <p style="margin:0; color:#fceecb;">${description}</p>
-                    </div>
-
-                    <div id="t-places" class="travel-tab-panel">
-                        <h5 style="margin-top:0; color:var(--gold);">Must-Visit Landmarks:</h5>
-                        ${targetData.places.map(place => `<div class="travel-list-item"><strong>${place}</strong></div>`).join('')}
-                    </div>
-
-                    <div id="t-things" class="travel-tab-panel">
-                        <h5 style="margin-top:0; color:var(--gold);">Top Activities & Experiences:</h5>
-                        ${targetData.things.map(thing => `<div class="travel-list-item">${thing}</div>`).join('')}
-                    </div>
-
-                    <div id="t-flights" class="travel-tab-panel">
-                        <p style="margin-top:0; color:var(--accent);"><strong>Recommended Air Carriers to ${destInput}:</strong></p>
-                        ${targetData.flights.map(flight => `<div class="travel-list-item">✈️ ${flight}</div>`).join('')}
-                        <p style="font-size:0.85rem; color:#888; margin-top:15px; margin-bottom:0;">*Booking Tip: Check flights 4-6 weeks early to find optimal scheduling windows and budget matrix limits.</p>
-                    </div>
-                </div>
-            `;
-        } catch (error) {
-            res.innerHTML = `<p style="color:red; text-align:center;">Could not compile specific records for "${destInput}". Please check connection.</p>`;
-        }
-    }
-
-    function switchTravelTab(panelId, tabEl) {
-        const rootCard = tabEl.closest('.premium-ai-card');
-        rootCard.querySelectorAll('.travel-tab').forEach(t => t.classList.remove('active'));
-        rootCard.querySelectorAll('.travel-tab-panel').forEach(p => p.classList.remove('active'));
-        
-        tabEl.classList.add('active');
-        rootCard.querySelector(`#${panelId}`).classList.add('active');
-    }
-
-    // --- CALCULATOR ENGINE ---
-    function getCalcElements(el) {
-        const root = el.closest('.google-calc-container');
-        return { display: root.querySelector('.calc-display-el') };
-    }
-    function inputCalc(v, el) {
-        const { display } = getCalcElements(el);
-        if (display.value === '0' && v !== '.') { display.value = v; } else { display.value += v; }
-    }
-    function clearCalc(el) { const { display } = getCalcElements(el); display.value = '0'; }
-    function delCalc(el) { const { display } = getCalcElements(el); display.value = display.value.slice(0, -1) || '0'; }
-    function solveCalc(el) {
-        const { display } = getCalcElements(el);
-        try { 
-            let expression = display.value.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
-            display.value = eval(expression); 
-        } catch { display.value = "Syntax Error"; }
-    }
-    function calcSpecial(type, el) {
-        const { display } = getCalcElements(el);
-        let val = parseFloat(display.value);
-        if(isNaN(val)) return;
-        if(type === 'fact') {
-            let f = 1; for(let i=1; i<=val; i++) f *= i;
-            display.value = f;
-        }
-    }
-
-    // --- STOPWATCH ---
-    let swStart = 0, swElapsed = 0, swInterval = null;
-    function startStopwatch(el) {
-        if(swInterval) return;
-        let disp = el.closest('.card').querySelector('.sw-display');
-        swStart = Date.now() - swElapsed;
-        swInterval = setInterval(() => {
-            swElapsed = Date.now() - swStart;
-            let totalMil = Math.floor(swElapsed / 100);
-            let totalSec = Math.floor(swElapsed / 1000);
-            let m = Math.floor(totalSec / 60).toString().padStart(2,'0');
-            let s = (totalSec % 60).toString().padStart(2,'0');
-            let ms = (totalMil % 10);
-            disp.innerText = `${m}:${s}.${ms}`;
-        }, 100);
-    }
-    function stopStopwatch() { clearInterval(swInterval); swInterval = null; }
-    function resetStopwatch(el) { stopStopwatch(); swElapsed = 0; el.closest('.card').querySelector('.sw-display').innerText = "00:00:00.0"; }
-
-    // --- WEATHER ---
-    async function getWeather(el) {
-        const root = el.closest('.card');
-        const city = root.querySelector('.w-city').value;
-        if(!city) return;
-        try {
-            const res = await fetch(`https://wttr.in/${city}?format=j1`);
-            const data = await res.json();
-            root.querySelector('.w-temp').innerText = data.current_condition[0].temp_C + "°C";
-            root.querySelector('.w-desc').innerText = data.current_condition[0].weatherDesc[0].value;
-            root.querySelector('.w-data').style.display = 'block';
-        } catch { alert("Atmosphere scan error."); }
-    }
-
-    // --- VECTOR DODGE ---
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    let player = { x: 185, y: 350, w: 30, h: 30 }, enemies = [], score = 0, gameActive = false;
-    canvas.onmousemove = (e) => { player.x = e.clientX - canvas.getBoundingClientRect().left - 15; };
-    function startVectorDodge() { gameActive = true; score = 0; enemies = []; animate(); }
-    function animate() {
-        if(!gameActive) return;
-        ctx.clearRect(0,0,400,400);
-        ctx.fillStyle = "#8ab4f8"; ctx.fillRect(player.x, player.y, player.w, player.h);
-        if(Math.random() < 0.06) enemies.push({ x: Math.random()*370, y: 0, s: 4 });
-        ctx.fillStyle = "#fbbc04";
-        enemies.forEach((en, i) => {
-            en.y += en.s; ctx.fillRect(en.x, en.y, 20, 20);
-            if(en.y > 330 && en.x < player.x + 30 && en.x + 20 > player.x) { gameActive = false; alert("End of Line. Score: " + score); }
-            if(en.y > 400) { enemies.splice(i, 1); score++; document.getElementById('game-score').innerText = score; }
-        });
-        requestAnimationFrame(animate);
-    }
 </script>
+
 </body>
 </html>
